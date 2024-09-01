@@ -1,0 +1,145 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
+from PIL import Image, ImageTk
+import cv2
+import numpy as np
+
+# Initialize main window
+root = tk.Tk()
+root.title("Image Processing Application")
+root.geometry("400x700")
+root.configure(bg="#121212")  # Dark theme background
+
+# Global variables
+img_path = ""
+img = None
+processed_img = None
+cropped_img = None
+
+# Function to upload an image
+def upload_image():
+    global img_path, img, processed_img
+    img_path = filedialog.askopenfilename()
+    if img_path:
+        img = cv2.imread(img_path)
+        if img is not None:
+            processed_img = img.copy()
+            display_image(processed_img)
+            show_edit_options()  # Show other editing options after uploading an image
+
+# Function to display the image in the label
+def display_image(img):
+    if len(img.shape) == 2:  # Grayscale image
+        im = Image.fromarray(img)
+    else:  # Color image
+        b, g, r = cv2.split(img)
+        img = cv2.merge((r, g, b))
+        im = Image.fromarray(img)
+    imgtk = ImageTk.PhotoImage(image=im)
+    image_label.config(image=imgtk)
+    image_label.imgtk = imgtk  # Keep a reference to prevent garbage collection
+
+# Function to rotate the image
+def rotate_image():
+    global processed_img
+    if processed_img is not None:
+        angle = 90  # Fixed angle of 90 degrees
+        (h, w) = processed_img.shape[:2]
+        center = (w // 2, h // 2)
+        M = cv2.getRotationMatrix2D(center, angle, 1.0)
+        rotated = cv2.warpAffine(processed_img, M, (w, h))
+        display_image(rotated)
+        processed_img = rotated  # Update the processed_img with the rotated image
+
+# Function to crop the image
+def crop_image():
+    global cropped_img, processed_img
+    if processed_img is not None:
+        h, w = processed_img.shape[:2]
+        start_x = w // 2 - 50
+        start_y = h // 2 - 50
+        cropped_img = processed_img[start_y:start_y + 100, start_x:start_x + 100]
+        display_image(cropped_img)
+        processed_img = cropped_img  # Update the processed_img with the cropped image
+
+# Function to show image properties
+def show_properties():
+    if processed_img is not None:
+        img_pil = Image.open(img_path)
+        properties = (
+            f"Filename: {img_path}\n"
+            f"Format: {img_pil.format}\n"
+            f"Size: {img_pil.size}\n"
+            f"Width: {processed_img.shape[1]}\n"
+            f"Height: {processed_img.shape[0]}"
+        )
+        messagebox.showinfo("Image Properties", properties)
+
+# Function to save the edited image
+def save_image():
+    if processed_img is not None:
+        save_path = filedialog.asksaveasfilename(defaultextension=".jpg", initialfile="edited_image.jpg")
+        if save_path:
+            cv2.imwrite(save_path, cv2.cvtColor(processed_img, cv2.COLOR_BGR2RGB))
+            messagebox.showinfo("Saved", "Image has been saved.")
+
+# Function to show editing options after image upload
+def show_edit_options():
+    crop_button.grid(row=0, column=0, padx=10, pady=10)
+    rotate_button.grid(row=0, column=1, padx=10, pady=10)
+    properties_button.grid(row=1, column=0, padx=10, pady=10)
+    save_button.grid(row=1, column=1, padx=10, pady=10)
+
+# Style configuration for rounded buttons
+style = ttk.Style()
+style.theme_use('clam')  # Use 'clam' theme for better ttk styling support
+style.configure('RoundedButton.TButton', font=('Helvetica', 12), padding=10, background='#2e2e2e', foreground='white')
+style.map('RoundedButton.TButton', background=[('active', '#444444')], foreground=[('active', 'white')])
+
+# Create a frame for scrollable content
+main_frame = tk.Frame(root, bg="#121212")
+main_frame.pack(fill='both', expand=True)
+
+# Create a canvas for scrollable content
+canvas = tk.Canvas(main_frame, bg="#121212", highlightthickness=0)
+scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+scrollable_frame = tk.Frame(canvas, bg="#121212")  # Use tk.Frame for custom bg
+
+scrollable_frame.bind(
+    "<Configure>",
+    lambda e: canvas.configure(
+        scrollregion=canvas.bbox("all")
+    )
+)
+
+canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+canvas.configure(yscrollcommand=scrollbar.set)
+
+canvas.pack(side="left", fill="both", expand=True)
+scrollbar.pack(side="right", fill="y")
+
+# Create image display label
+image_label = tk.Label(scrollable_frame, bg="#121212")
+image_label.pack(pady=20)
+
+# Frame for buttons
+button_frame = tk.Frame(scrollable_frame, bg="#121212")
+button_frame.pack(pady=20)
+
+# Rounded Buttons
+crop_button = ttk.Button(button_frame, text="Crop", command=crop_image, style='RoundedButton.TButton')
+rotate_button = ttk.Button(button_frame, text="Rotate", command=rotate_image, style='RoundedButton.TButton')
+properties_button = ttk.Button(button_frame, text="Show Properties", command=show_properties, style='RoundedButton.TButton')
+save_button = ttk.Button(button_frame, text="Save", command=save_image, style='RoundedButton.TButton')
+
+# Initially hide the edit options
+crop_button.grid_forget()
+rotate_button.grid_forget()
+properties_button.grid_forget()
+save_button.grid_forget()
+
+# Main Frame for Upload Button
+upload_button = ttk.Button(scrollable_frame, text="Upload Image", command=upload_image, style='RoundedButton.TButton')
+upload_button.pack(side='bottom', pady=30)
+
+root.mainloop()
