@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processing Application</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function updateImage() {
+            fetch('/get_image')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const imgElement = document.getElementById('image-display');
+                    imgElement.src = url;
+                    imgElement.style.display = 'block';  // Ensure the image is visible
+                })
+                .catch(error => console.error('Error fetching image:', error));
+        }
+    
+        function performAction(action, formData = null) {
+            fetch(action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateImage();
+                } else {
+                    console.error('Action failed:', data.error);
+                }
+            })
+            .catch(error => console.error('Error performing action:', error));
+        }
+    
+        function uploadImage() {
+            const fileInput = document.getElementById('file-input');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            performAction('/upload', formData);
+        }
+    
+        function rotateImage() {
+            performAction('/rotate');
+        }
+    
+        function invertColors() {
+            performAction('/invert');
+        }
+    
+        function cropImage() {
+            const formData = new FormData();
+            const width = document.getElementById('crop-width').value;
+            const height = document.getElementById('crop-height').value;
+            formData.append('width', width);
+            formData.append('height', height);
+            performAction('/crop', formData);
+        }
+    
+        function undo() {
+            performAction('/undo');
+        }
+    
+        function redo() {
+            performAction('/redo');
+        }
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('upload-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                uploadImage();
+            });
+        });
+    </script>
+     
+</head>
+<body>
+    <div class="container">
+        <h1>Image Processing Application</h1>
+        <form id="upload-form" enctype="multipart/form-data">
+            <input type="file" id="file-input" name="file" accept="image/*" required>
+            <button type="submit">Upload Image</button>
+        </form>
+        
+        <img id="image-display" style="display:none; margin-top: 20px;" />
+
+        <div class="buttons" style="margin-top: 20px;">
+            <button onclick="rotateImage()" class="btn"><i class="fas fa-sync-alt"></i> Rotate</button>
+            <button onclick="invertColors()" class="btn"><i class="fas fa-adjust"></i> Invert Colors</button>
+            <input type="number" id="crop-width" placeholder="Width" style="width: 80px;" required>
+            <input type="number" id="crop-height" placeholder="Height" style="width: 80px;" required>
+            <button onclick="cropImage()" class="btn"><i class="fas fa-crop"></i> Crop</button>
+            <button onclick="undo()" class="btn"><i class="fas fa-undo"></i> Undo</button>
+            <button onclick="redo()" class="btn"><i class="fas fa-redo"></i> Redo</button>
+        </div>
+    </div>
+</body>
+</html>

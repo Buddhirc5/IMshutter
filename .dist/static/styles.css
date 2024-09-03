@@ -1,0 +1,98 @@
+body {
+    font-family: 'Poppins', sans-serif; /* Using a modern font */
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    text-align: center;
+    width: 60%;
+    max-width: 600px;
+    transition: all 0.3s ease; /* Smooth transition */
+}
+
+h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333; /* Darker font color for better contrast */
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+input[type="file"] {
+    margin-bottom: 15px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    transition: all 0.3s ease; /* Smooth transition */
+}
+
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn {
+    padding: 12px 25px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 12px; /* Rounded corners for buttons */
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease; /* Smooth transition for hover effect */
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Button shadow for depth */
+    display: flex;
+    align-items: center;
+}
+
+.btn i {
+    margin-right: 8px;
+}
+
+.btn:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3); /* Enhanced shadow on hover */
+    transform: translateY(-2px); /* Slight upward movement on hover */
+}
+
+input[type="number"] {
+    width: 70px;
+    margin-right: 10px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease; /* Smooth transition */
+}
+
+input[type="number"]:focus {
+    border-color: #007bff; /* Blue border on focus */
+    outline: none; /* Remove default outline */
+}
+
+#image-display {
+    max-width: 100%;
+    display: block;
+    margin-top: 20px;
+    border-radius: 10px; /* Rounded corners for images */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Image shadow for depth */
+    transition: all 0.3s ease; /* Smooth transition */
+}
+
+/* Add smooth transitions for the container to emphasize the hover effects */
+.container:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
+    transform: scale(1.02); /* Slight zoom effect on hover */
+}

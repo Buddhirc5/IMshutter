@@ -78,6 +78,12 @@ def invert_colors():
             inverted_img = cv2.bitwise_not(processed_img)
             display_image(inverted_img)
             processed_img = inverted_img  # Update the processed_img with the inverted image
+        elif inversion_type == "Grayscale Inversion":
+            # Convert to grayscale first, then invert
+            gray_img = cv2.cvtColor(processed_img, cv2.COLOR_BGR2GRAY)
+            inverted_img = cv2.bitwise_not(gray_img)
+            display_image(inverted_img)
+            processed_img = inverted_img  # Update the processed_img with the inverted grayscale image
 
 # Function to show image properties
 def show_properties():
@@ -110,6 +116,7 @@ def show_edit_options():
     
     rotate_button.grid(row=1, column=0, padx=10, pady=10)
     invert_button.grid(row=1, column=1, padx=10, pady=10)
+    inversion_dropdown.grid(row=1, column=2, padx=10, pady=10)
     properties_button.grid(row=2, column=0, padx=10, pady=10)
     save_button.grid(row=2, column=1, padx=10, pady=10)
 
@@ -167,20 +174,24 @@ invert_button = ttk.Button(button_frame, text="Invert Colors", command=invert_co
 properties_button = ttk.Button(button_frame, text="Show Properties", command=show_properties, style='RoundedButton.TButton', image=properties_icon, compound=tk.LEFT)
 save_button = ttk.Button(button_frame, text="Save", command=save_image, style='RoundedButton.TButton', image=save_icon, compound=tk.LEFT)
 
-# Initially hide the edit options
-crop_button.grid_forget()
-rotate_button.grid_forget()
-invert_button.grid_forget()
-properties_button.grid_forget()
-save_button.grid_forget()
-
 # Crop size entry fields
 crop_width_label = ttk.Label(button_frame, text="Width:", background="#ffffff")
 crop_width_entry = ttk.Entry(button_frame, width=10)
 crop_height_label = ttk.Label(button_frame, text="Height:", background="#ffffff")
 crop_height_entry = ttk.Entry(button_frame, width=10)
 
-# Initially hide crop size entry fields
+# Dropdown for inversion options
+inversion_options = ["Invert Colors", "Grayscale Inversion"]
+inversion_dropdown = ttk.Combobox(button_frame, values=inversion_options, state="readonly", width=15)
+inversion_dropdown.current(0)
+
+# Initially hide the edit options
+crop_button.grid_forget()
+rotate_button.grid_forget()
+invert_button.grid_forget()
+properties_button.grid_forget()
+save_button.grid_forget()
+inversion_dropdown.grid_forget()
 crop_width_label.grid_forget()
 crop_width_entry.grid_forget()
 crop_height_label.grid_forget()
@@ -189,13 +200,5 @@ crop_height_entry.grid_forget()
 # Main Frame for Upload Button
 upload_button = ttk.Button(scrollable_frame, text="Upload Image", command=upload_image, style='RoundedButton.TButton', image=upload_icon, compound=tk.LEFT)
 upload_button.pack(side='bottom', pady=30)
-
-# Dropdown for inversion options
-inversion_options = ["Invert Colors"]
-inversion_dropdown = ttk.Combobox(button_frame, values=inversion_options, state="readonly", width=15)
-inversion_dropdown.current(0)
-
-# Add dropdown next to the invert button
-inversion_dropdown.grid(row=1, column=2, padx=10, pady=10)
 
 root.mainloop()
