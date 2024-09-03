@@ -1,6 +1,6 @@
 body {
-    font-family: 'Poppins', sans-serif; /* Using a modern font */
-    background-color: #f4f4f4;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f4f4; /* Light grey background */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,88 +11,110 @@ body {
 .container {
     background: white;
     padding: 30px;
-    border-radius: 15px; /* Rounded corners */
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     text-align: center;
-    width: 60%;
-    max-width: 600px;
-    transition: all 0.3s ease; /* Smooth transition */
-}
-
-h1 {
-    margin-bottom: 20px;
-    font-size: 24px;
-    color: #333; /* Darker font color for better contrast */
-}
-
-form {
-    margin-bottom: 20px;
-}
-
-input[type="file"] {
-    margin-bottom: 15px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    transition: all 0.3s ease; /* Smooth transition */
-}
-
-.buttons {
+    width: 80%;
+    max-width: 1000px;
+    transition: all 0.3s ease;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.top-controls {
+    display: flex;
     justify-content: center;
     gap: 15px;
+    margin-bottom: 20px;
 }
 
-.btn {
-    padding: 12px 25px;
-    background-color: #007bff;
+.image-display-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+#image-display {
+    max-width: 70%;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.side-menu {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.side-btn, .green-btn, .blue-btn {
+    padding: 10px 20px;
     color: white;
     border: none;
-    border-radius: 12px; /* Rounded corners for buttons */
+    border-radius: 12px;
     cursor: pointer;
-    font-size: 16px;
-    transition: all 0.3s ease; /* Smooth transition for hover effect */
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2); /* Button shadow for depth */
+    font-size: 14px;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
 }
 
-.btn i {
+.rounded-btn {
+    border-radius: 12px; /* Ensures rounded corners */
+}
+
+.green-btn {
+    background-color: #28a745; /* Green color */
+}
+
+.green-btn:hover {
+    background-color: #218838;
+}
+
+.blue-btn {
+    background-color: #17a2b8; /* Light blue color */
+}
+
+.blue-btn:hover {
+    background-color: #138496;
+}
+
+.side-btn {
+    background-color: #007bff;
+}
+
+.side-btn:hover {
+    background-color: #0056b3;
+}
+
+.side-btn i, .green-btn i, .blue-btn i {
     margin-right: 8px;
 }
 
-.btn:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3); /* Enhanced shadow on hover */
-    transform: translateY(-2px); /* Slight upward movement on hover */
+.crop-section {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 input[type="number"] {
     width: 70px;
-    margin-right: 10px;
     padding: 8px;
     border-radius: 8px;
     border: 1px solid #ddd;
-    transition: all 0.3s ease; /* Smooth transition */
+    transition: all 0.3s ease;
 }
 
 input[type="number"]:focus {
-    border-color: #007bff; /* Blue border on focus */
-    outline: none; /* Remove default outline */
-}
-
-#image-display {
-    max-width: 100%;
-    display: block;
-    margin-top: 20px;
-    border-radius: 10px; /* Rounded corners for images */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Image shadow for depth */
-    transition: all 0.3s ease; /* Smooth transition */
-}
-
-/* Add smooth transitions for the container to emphasize the hover effects */
-.container:hover {
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
-    transform: scale(1.02); /* Slight zoom effect on hover */
+    border-color: #007bff;
+    outline: none;
 }

@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Processing Application</title>
+    <title>IM Shutter</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Ensures that the background is white and not black */
+        body {
+            background-color: #f4f4f4; /* Light grey background */
+        }
+    </style>
     <script>
         function updateImage() {
             fetch('/get_image')
@@ -19,7 +25,7 @@
                 })
                 .catch(error => console.error('Error fetching image:', error));
         }
-    
+
         function performAction(action, formData = null) {
             fetch(action, {
                 method: 'POST',
@@ -35,22 +41,22 @@
             })
             .catch(error => console.error('Error performing action:', error));
         }
-    
+
         function uploadImage() {
             const fileInput = document.getElementById('file-input');
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
             performAction('/upload', formData);
         }
-    
+
         function rotateImage() {
             performAction('/rotate');
         }
-    
+
         function invertColors() {
             performAction('/invert');
         }
-    
+
         function cropImage() {
             const formData = new FormData();
             const width = document.getElementById('crop-width').value;
@@ -59,15 +65,55 @@
             formData.append('height', height);
             performAction('/crop', formData);
         }
-    
+
+        function sharpenImage() {
+            performAction('/sharpen');
+        }
+
+        function smoothImage() {
+            performAction('/smooth');
+        }
+
+        function edgeDetect() {
+            performAction('/edge_detect');
+        }
+
+        function embossImage() {
+            performAction('/emboss');
+        }
+
+        function colorBalance() {
+            performAction('/color_balance');
+        }
+
+        function segmentImage() {
+            performAction('/segment');
+        }
+
         function undo() {
             performAction('/undo');
         }
-    
+
         function redo() {
             performAction('/redo');
         }
-    
+
+        function saveImage() {
+            window.location.href = '/download';
+        }
+
+        function changeToColor() {
+            performAction('/color');
+        }
+
+        function changeToBW() {
+            performAction('/black_white');
+        }
+
+        function changeToGrayscale() {
+            performAction('/grayscale');
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('upload-form').addEventListener('submit', function(event) {
                 event.preventDefault();
@@ -75,27 +121,39 @@
             });
         });
     </script>
-     
 </head>
 <body>
     <div class="container">
-        <h1>Image Processing Application</h1>
-        <form id="upload-form" enctype="multipart/form-data">
-            <input type="file" id="file-input" name="file" accept="image/*" required>
-            <button type="submit">Upload Image</button>
-        </form>
-        
-        <img id="image-display" style="display:none; margin-top: 20px;" />
-
-        <div class="buttons" style="margin-top: 20px;">
-            <button onclick="rotateImage()" class="btn"><i class="fas fa-sync-alt"></i> Rotate</button>
-            <button onclick="invertColors()" class="btn"><i class="fas fa-adjust"></i> Invert Colors</button>
-            <input type="number" id="crop-width" placeholder="Width" style="width: 80px;" required>
-            <input type="number" id="crop-height" placeholder="Height" style="width: 80px;" required>
-            <button onclick="cropImage()" class="btn"><i class="fas fa-crop"></i> Crop</button>
-            <button onclick="undo()" class="btn"><i class="fas fa-undo"></i> Undo</button>
-            <button onclick="redo()" class="btn"><i class="fas fa-redo"></i> Redo</button>
+        <div class="top-controls">
+            <button onclick="undo()" class="btn green-btn rounded-btn"><i class="fas fa-undo"></i> Undo</button>
+            <button onclick="redo()" class="btn green-btn rounded-btn"><i class="fas fa-redo"></i> Redo</button>
         </div>
+        <div class="image-display-container">
+            <img id="image-display" style="display:none; margin-top: 20px;" />
+        </div>
+        <div class="side-menu">
+            <button onclick="rotateImage()" class="side-btn rounded-btn"><i class="fas fa-sync-alt"></i> Rotate</button>
+            <button onclick="invertColors()" class="side-btn rounded-btn"><i class="fas fa-adjust"></i> Invert Colors</button>
+            <button onclick="sharpenImage()" class="side-btn rounded-btn"><i class="fas fa-search-plus"></i> Sharpen</button>
+            <button onclick="smoothImage()" class="side-btn rounded-btn"><i class="fas fa-water"></i> Smooth</button>
+            <button onclick="edgeDetect()" class="side-btn rounded-btn"><i class="fas fa-vector-square"></i> Edge Detect</button>
+            <button onclick="embossImage()" class="side-btn rounded-btn"><i class="fas fa-hat-wizard"></i> Emboss</button>
+            <button onclick="colorBalance()" class="side-btn rounded-btn"><i class="fas fa-palette"></i> Color Balance</button>
+            <button onclick="segmentImage()" class="side-btn rounded-btn"><i class="fas fa-object-group"></i> Segment</button>
+            <button onclick="changeToColor()" class="side-btn rounded-btn"><i class="fas fa-image"></i> Color</button>
+            <button onclick="changeToBW()" class="side-btn rounded-btn"><i class="fas fa-adjust"></i> BW</button>
+            <button onclick="changeToGrayscale()" class="side-btn rounded-btn"><i class="fas fa-adjust"></i> Grayscale</button>
+            <button onclick="saveImage()" class="side-btn rounded-btn"><i class="fas fa-save"></i> Save</button>
+        </div>
+        <div class="crop-section">
+            <input type="number" id="crop-width" placeholder="Width" required>
+            <input type="number" id="crop-height" placeholder="Height" required>
+            <button onclick="cropImage()" class="side-btn rounded-btn"><i class="fas fa-crop"></i> Crop</button>
+        </div>
+        <form id="upload-form" class="upload-form" enctype="multipart/form-data">
+            <input type="file" id="file-input" name="file" accept="image/*" class="btn blue-btn rounded-btn" required>
+            <button type="submit" class="btn blue-btn rounded-btn">Upload Image</button>
+        </form>
     </div>
 </body>
 </html>
