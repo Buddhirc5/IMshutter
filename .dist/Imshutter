@@ -8,7 +8,7 @@ import numpy as np
 root = tk.Tk()
 root.title("Image Processing Application")
 root.geometry("400x700")
-root.configure(bg="#121212")  # Dark theme background
+root.configure(bg="#ffffff")  # White background
 
 # Global variables
 img_path = ""
@@ -55,12 +55,29 @@ def rotate_image():
 def crop_image():
     global cropped_img, processed_img
     if processed_img is not None:
+        try:
+            width = int(crop_width_entry.get())
+            height = int(crop_height_entry.get())
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter valid width and height.")
+            return
+        
         h, w = processed_img.shape[:2]
-        start_x = w // 2 - 50
-        start_y = h // 2 - 50
-        cropped_img = processed_img[start_y:start_y + 100, start_x:start_x + 100]
+        start_x = max(w // 2 - width // 2, 0)
+        start_y = max(h // 2 - height // 2, 0)
+        cropped_img = processed_img[start_y:start_y + height, start_x:start_x + width]
         display_image(cropped_img)
         processed_img = cropped_img  # Update the processed_img with the cropped image
+
+# Function to invert the colors of the image
+def invert_colors():
+    global processed_img
+    if processed_img is not None:
+        inversion_type = inversion_dropdown.get()
+        if inversion_type == "Invert Colors":
+            inverted_img = cv2.bitwise_not(processed_img)
+            display_image(inverted_img)
+            processed_img = inverted_img  # Update the processed_img with the inverted image
 
 # Function to show image properties
 def show_properties():
@@ -86,24 +103,32 @@ def save_image():
 # Function to show editing options after image upload
 def show_edit_options():
     crop_button.grid(row=0, column=0, padx=10, pady=10)
-    rotate_button.grid(row=0, column=1, padx=10, pady=10)
-    properties_button.grid(row=1, column=0, padx=10, pady=10)
-    save_button.grid(row=1, column=1, padx=10, pady=10)
+    crop_width_label.grid(row=0, column=1, padx=5, pady=5)
+    crop_width_entry.grid(row=0, column=2, padx=5, pady=5)
+    crop_height_label.grid(row=0, column=3, padx=5, pady=5)
+    crop_height_entry.grid(row=0, column=4, padx=5, pady=5)
+    
+    rotate_button.grid(row=1, column=0, padx=10, pady=10)
+    invert_button.grid(row=1, column=1, padx=10, pady=10)
+    properties_button.grid(row=2, column=0, padx=10, pady=10)
+    save_button.grid(row=2, column=1, padx=10, pady=10)
 
 # Style configuration for rounded buttons
 style = ttk.Style()
 style.theme_use('clam')  # Use 'clam' theme for better ttk styling support
-style.configure('RoundedButton.TButton', font=('Helvetica', 12), padding=10, background='#2e2e2e', foreground='white')
-style.map('RoundedButton.TButton', background=[('active', '#444444')], foreground=[('active', 'white')])
+style.configure('RoundedButton.TButton', font=('Helvetica', 12), padding=10, background='#e0f7ff', foreground='black')
+style.map('RoundedButton.TButton', background=[('active', '#b3e5fc')], foreground=[('active', 'black')])
 
 # Create a frame for scrollable content
-main_frame = tk.Frame(root, bg="#121212")
+main_frame = tk.Frame(root, bg="#ffffff")
 main_frame.pack(fill='both', expand=True)
 
 # Create a canvas for scrollable content
-canvas = tk.Canvas(main_frame, bg="#121212", highlightthickness=0)
-scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
-scrollable_frame = tk.Frame(canvas, bg="#121212")  # Use tk.Frame for custom bg
+canvas = tk.Canvas(main_frame, bg="#ffffff", highlightthickness=0)
+scrollbar_y = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+scrollbar_x = ttk.Scrollbar(main_frame, orient="horizontal", command=canvas.xview)
+
+scrollable_frame = tk.Frame(canvas, bg="#ffffff")  # Use tk.Frame for custom bg
 
 scrollable_frame.bind(
     "<Configure>",
@@ -113,33 +138,64 @@ scrollable_frame.bind(
 )
 
 canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-canvas.configure(yscrollcommand=scrollbar.set)
+canvas.configure(yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
 
 canvas.pack(side="left", fill="both", expand=True)
-scrollbar.pack(side="right", fill="y")
+scrollbar_y.pack(side="right", fill="y")
+scrollbar_x.pack(side="bottom", fill="x")
 
 # Create image display label
-image_label = tk.Label(scrollable_frame, bg="#121212")
+image_label = tk.Label(scrollable_frame, bg="#ffffff")
 image_label.pack(pady=20)
 
 # Frame for buttons
-button_frame = tk.Frame(scrollable_frame, bg="#121212")
+button_frame = tk.Frame(scrollable_frame, bg="#ffffff")
 button_frame.pack(pady=20)
 
-# Rounded Buttons
-crop_button = ttk.Button(button_frame, text="Crop", command=crop_image, style='RoundedButton.TButton')
-rotate_button = ttk.Button(button_frame, text="Rotate", command=rotate_image, style='RoundedButton.TButton')
-properties_button = ttk.Button(button_frame, text="Show Properties", command=show_properties, style='RoundedButton.TButton')
-save_button = ttk.Button(button_frame, text="Save", command=save_image, style='RoundedButton.TButton')
+# Icons for buttons
+crop_icon = ImageTk.PhotoImage(Image.open("crop_icon.png").resize((20, 20)))
+rotate_icon = ImageTk.PhotoImage(Image.open("rotate_icon.png").resize((20, 20)))
+invert_icon = ImageTk.PhotoImage(Image.open("invert_icon.png").resize((20, 20)))
+properties_icon = ImageTk.PhotoImage(Image.open("properties_icon.png").resize((20, 20)))
+save_icon = ImageTk.PhotoImage(Image.open("save_icon.png").resize((20, 20)))
+upload_icon = ImageTk.PhotoImage(Image.open("upload_icon.png").resize((20, 20)))
+
+# Rounded Buttons with icons
+crop_button = ttk.Button(button_frame, text="Crop", command=crop_image, style='RoundedButton.TButton', image=crop_icon, compound=tk.LEFT)
+rotate_button = ttk.Button(button_frame, text="Rotate", command=rotate_image, style='RoundedButton.TButton', image=rotate_icon, compound=tk.LEFT)
+invert_button = ttk.Button(button_frame, text="Invert Colors", command=invert_colors, style='RoundedButton.TButton', image=invert_icon, compound=tk.LEFT)
+properties_button = ttk.Button(button_frame, text="Show Properties", command=show_properties, style='RoundedButton.TButton', image=properties_icon, compound=tk.LEFT)
+save_button = ttk.Button(button_frame, text="Save", command=save_image, style='RoundedButton.TButton', image=save_icon, compound=tk.LEFT)
 
 # Initially hide the edit options
 crop_button.grid_forget()
 rotate_button.grid_forget()
+invert_button.grid_forget()
 properties_button.grid_forget()
 save_button.grid_forget()
 
+# Crop size entry fields
+crop_width_label = ttk.Label(button_frame, text="Width:", background="#ffffff")
+crop_width_entry = ttk.Entry(button_frame, width=10)
+crop_height_label = ttk.Label(button_frame, text="Height:", background="#ffffff")
+crop_height_entry = ttk.Entry(button_frame, width=10)
+
+# Initially hide crop size entry fields
+crop_width_label.grid_forget()
+crop_width_entry.grid_forget()
+crop_height_label.grid_forget()
+crop_height_entry.grid_forget()
+
 # Main Frame for Upload Button
-upload_button = ttk.Button(scrollable_frame, text="Upload Image", command=upload_image, style='RoundedButton.TButton')
+upload_button = ttk.Button(scrollable_frame, text="Upload Image", command=upload_image, style='RoundedButton.TButton', image=upload_icon, compound=tk.LEFT)
 upload_button.pack(side='bottom', pady=30)
+
+# Dropdown for inversion options
+inversion_options = ["Invert Colors"]
+inversion_dropdown = ttk.Combobox(button_frame, values=inversion_options, state="readonly", width=15)
+inversion_dropdown.current(0)
+
+# Add dropdown next to the invert button
+inversion_dropdown.grid(row=1, column=2, padx=10, pady=10)
 
 root.mainloop()
