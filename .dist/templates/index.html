@@ -42,6 +42,7 @@
             .catch(error => console.error('Error performing action:', error));
         }
 
+        // Function to handle image upload by submitting the file through a form
         function uploadImage() {
             const fileInput = document.getElementById('file-input');
             const formData = new FormData();
@@ -49,14 +50,17 @@
             performAction('/upload', formData);
         }
 
+        // Function to rotate the image
         function rotateImage() {
             performAction('/rotate');
         }
 
+        // Function to invert the colors of the image
         function invertColors() {
             performAction('/invert');
         }
 
+        // Function to crop the image to specified dimensions
         function cropImage() {
             const formData = new FormData();
             const width = document.getElementById('crop-width').value;
@@ -66,58 +70,71 @@
             performAction('/crop', formData);
         }
 
+        // Function to sharpen the image
         function sharpenImage() {
             performAction('/sharpen');
         }
 
+        // Function to smooth the image
         function smoothImage() {
             performAction('/smooth');
         }
 
+        // Function to detect edges in the image
         function edgeDetect() {
             performAction('/edge_detect');
         }
 
+        // Function to emboss the image
         function embossImage() {
             performAction('/emboss');
         }
 
+        // Function to balance the colors in the image
         function colorBalance() {
             performAction('/color_balance');
         }
 
+        // Function to segment the image into distinct parts
         function segmentImage() {
             performAction('/segment');
         }
 
+        // Function to undo the last action
         function undo() {
             performAction('/undo');
         }
 
+        // Function to redo the last undone action
         function redo() {
             performAction('/redo');
         }
 
+        // Function to download the processed image
         function saveImage() {
             window.location.href = '/download';
         }
 
+        // Function to change the image to full color
         function changeToColor() {
             performAction('/color');
         }
 
+        // Function to change the image to black and white
         function changeToBW() {
             performAction('/black_white');
         }
 
+        // Function to change the image to grayscale
         function changeToGrayscale() {
             performAction('/grayscale');
         }
 
+        // When the DOM content is fully loaded, attach an event listener to the upload form
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('upload-form').addEventListener('submit', function(event) {
                 event.preventDefault();
-                uploadImage();
+                uploadImage();// Calls the uploadImage function to handle the file upload
             });
         });
     </script>
