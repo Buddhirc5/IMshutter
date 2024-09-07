@@ -7,13 +7,15 @@
     <title>IM Shutter</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        /* Ensures that the background is white and not black */
-        body {
-            background-color: #f4f4f4; /* Light grey background */
-        }
-    </style>
     <script>
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'popup';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000); // Remove after 3 seconds
+        }
+
         function updateImage() {
             fetch('/get_image')
                 .then(response => response.blob())
@@ -24,6 +26,16 @@
                     imgElement.style.display = 'block';  // Ensure the image is visible
                 })
                 .catch(error => console.error('Error fetching image:', error));
+
+            fetch('/get_original_image')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const originalImageElement = document.getElementById('original-image');
+                    originalImageElement.src = url;
+                    originalImageElement.style.display = 'block';  // Ensure the original image is visible
+                })
+                .catch(error => console.error('Error fetching original image:', error));
         }
 
         function performAction(action, formData = null) {
@@ -34,6 +46,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    showNotification(data.message || 'Action completed successfully!'); // Show notification
                     updateImage();
                 } else {
                     console.error('Action failed:', data.error);
@@ -42,7 +55,6 @@
             .catch(error => console.error('Error performing action:', error));
         }
 
-        // Function to handle image upload by submitting the file through a form
         function uploadImage() {
             const fileInput = document.getElementById('file-input');
             const formData = new FormData();
@@ -50,17 +62,17 @@
             performAction('/upload', formData);
         }
 
-        // Function to rotate the image
         function rotateImage() {
-            performAction('/rotate');
+            const formData = new FormData();
+            const angle = document.getElementById('rotate-angle').value;
+            formData.append('angle', angle);
+            performAction('/rotate', formData);
         }
 
-        // Function to invert the colors of the image
         function invertColors() {
             performAction('/invert');
         }
 
-        // Function to crop the image to specified dimensions
         function cropImage() {
             const formData = new FormData();
             const width = document.getElementById('crop-width').value;
@@ -70,73 +82,100 @@
             performAction('/crop', formData);
         }
 
-        // Function to sharpen the image
         function sharpenImage() {
             performAction('/sharpen');
         }
 
-        // Function to smooth the image
         function smoothImage() {
             performAction('/smooth');
         }
 
-        // Function to detect edges in the image
         function edgeDetect() {
             performAction('/edge_detect');
         }
 
-        // Function to emboss the image
         function embossImage() {
             performAction('/emboss');
         }
 
-        // Function to balance the colors in the image
         function colorBalance() {
             performAction('/color_balance');
         }
 
-        // Function to segment the image into distinct parts
         function segmentImage() {
             performAction('/segment');
         }
 
-        // Function to undo the last action
+        function applyTonalTransform() {
+        const formData = new FormData();
+        const tonalType = document.getElementById('tonal-type').value;
+        formData.append('tonal_type', tonalType);
+        performAction('/tonal_transformation', formData);
+    }
+
         function undo() {
             performAction('/undo');
         }
 
-        // Function to redo the last undone action
         function redo() {
             performAction('/redo');
         }
 
-        // Function to download the processed image
-        function saveImage() {
-            window.location.href = '/download';
+        function saturateImage() {
+            const formData = new FormData();
+            const factor = document.getElementById('saturation-factor').value;
+            formData.append('factor', factor);
+            performAction('/saturate', formData);
         }
 
-        // Function to change the image to full color
+        function saveImage() {
+            fetch('/save', {
+                method: 'POST'
+            })
+            .then(response => {
+                if (response.ok) {
+                    showNotification('Image saved successfully!');
+                    return response.blob();
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.error);
+                    });
+                }
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'edited_image.jpg';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error('Error saving image:', error);
+                showNotification('Error saving image: ' + error.message);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('upload-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                uploadImage();
+            });
+        });
+
         function changeToColor() {
             performAction('/color');
         }
 
-        // Function to change the image to black and white
         function changeToBW() {
             performAction('/black_white');
         }
 
-        // Function to change the image to grayscale
         function changeToGrayscale() {
             performAction('/grayscale');
         }
-
-        // When the DOM content is fully loaded, attach an event listener to the upload form
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('upload-form').addEventListener('submit', function(event) {
-                event.preventDefault();
-                uploadImage();// Calls the uploadImage function to handle the file upload
-            });
-        });
     </script>
 </head>
 <body>
@@ -146,31 +185,63 @@
             <button onclick="redo()" class="btn green-btn rounded-btn"><i class="fas fa-redo"></i> Redo</button>
         </div>
         <div class="image-display-container">
-            <img id="image-display" style="display:none; margin-top: 20px;" />
+            <div class="image-box">
+                <h3>Original Image</h3>
+                <img id="original-image" style="display:none; margin-top: 20px;" />
+            </div>
+            <div class="image-box">
+                <h3>Modified Image</h3>
+                <img id="image-display" style="display:none; margin-top: 20px;" />
+            </div>
         </div>
+        
+        <div class="bottom-controls">
+            <div class="crop-section">
+                <input type="number" id="crop-width" placeholder="Width" required>
+                <input type="number" id="crop-height" placeholder="Height" required>
+                <button onclick="cropImage()" class="btn blue-btn rounded-btn"><i class="fas fa-crop"></i> Crop</button>
+            </div>
+            
+            <div class="file-upload-section">
+                <label class="side-btn rounded-btn">
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                    Select Image
+                </label>
+                <button onclick="uploadImage()" class="side-btn rounded-btn"><i class="fas fa-upload"></i> Upload Image</button>
+            </div>           
+
         <div class="side-menu">
-            <button onclick="rotateImage()" class="side-btn rounded-btn"><i class="fas fa-sync-alt"></i> Rotate</button>
+            <div class="rotate-section">
+                <input type="number" id="rotate-angle" placeholder="Angle" required>
+                <button onclick="rotateImage()" class="side-btn rounded-btn"><i class="fas fa-sync-alt"></i> Rotate</button>
+            </div>
             <button onclick="invertColors()" class="side-btn rounded-btn"><i class="fas fa-adjust"></i> Invert Colors</button>
-            <button onclick="sharpenImage()" class="side-btn rounded-btn"><i class="fas fa-search-plus"></i> Sharpen</button>
-            <button onclick="smoothImage()" class="side-btn rounded-btn"><i class="fas fa-water"></i> Smooth</button>
-            <button onclick="edgeDetect()" class="side-btn rounded-btn"><i class="fas fa-vector-square"></i> Edge Detect</button>
-            <button onclick="embossImage()" class="side-btn rounded-btn"><i class="fas fa-hat-wizard"></i> Emboss</button>
-            <button onclick="colorBalance()" class="side-btn rounded-btn"><i class="fas fa-palette"></i> Color Balance</button>
-            <button onclick="segmentImage()" class="side-btn rounded-btn"><i class="fas fa-object-group"></i> Segment</button>
+            <button onclick="sharpenImage()" class="orange-btn rounded-btn"><i class="fas fa-search-plus"></i> Sharpen</button>
+            <button onclick="smoothImage()" class="orange-btn rounded-btn"><i class="fas fa-water"></i> Smooth</button>
+            <button onclick="edgeDetect()" class="orange-btn rounded-btn"><i class="fas fa-vector-square"></i> Edge Detect</button>
+            <button onclick="embossImage()" class="orange-btn rounded-btn"><i class="fas fa-hat-wizard"></i> Emboss</button>
+            <button onclick="colorBalance()" class="orange-btn rounded-btn"><i class="fas fa-palette"></i> Color Balance</button>
+            <button onclick="segmentImage()" class="orange-btn rounded-btn"><i class="fas fa-object-group"></i> Segment</button>
             <button onclick="changeToColor()" class="side-btn rounded-btn"><i class="fas fa-image"></i> Color</button>
             <button onclick="changeToBW()" class="side-btn rounded-btn"><i class="fas fa-adjust"></i> BW</button>
             <button onclick="changeToGrayscale()" class="side-btn rounded-btn"><i class="fas fa-adjust"></i> Grayscale</button>
+            <div class="tonal-transformation-section">
+                <label for="tonal-type">Tonal Transformation Type:</label>
+                <select id="tonal-type">
+                    <option value="brightness_contrast">Brightness & Contrast</option>
+                    <option value="highlights_shadows">Highlights & Shadows</option>
+                    <option value="levels_curves">Levels & Curves</option>
+                </select>
+                <button onclick="applyTonalTransform()" class="orange-btn rounded-btn"><i class="fas fa-adjust"></i> Apply Tonal Transform</button>
+            </div>
+            <div class="saturation-section">
+                <label for="saturation-factor">Saturation Factor:</label>
+                <input type="number" id="saturation-factor" value="1.5" step="0.1" min="0" max="3">
+                <button onclick="saturateImage()" class="orange-btn rounded-btn"><i class="fas fa-palette"></i> Saturate</button>
+            </div>
+            
             <button onclick="saveImage()" class="side-btn rounded-btn"><i class="fas fa-save"></i> Save</button>
         </div>
-        <div class="crop-section">
-            <input type="number" id="crop-width" placeholder="Width" required>
-            <input type="number" id="crop-height" placeholder="Height" required>
-            <button onclick="cropImage()" class="side-btn rounded-btn"><i class="fas fa-crop"></i> Crop</button>
-        </div>
-        <form id="upload-form" class="upload-form" enctype="multipart/form-data">
-            <input type="file" id="file-input" name="file" accept="image/*" class="btn blue-btn rounded-btn" required>
-            <button type="submit" class="btn blue-btn rounded-btn">Upload Image</button>
-        </form>
     </div>
 </body>
 </html>
