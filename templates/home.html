@@ -20,31 +20,42 @@
                 <li><a href="/segmentation">Segmentation</a></li>
                 <li><a href="#features">Features</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li><a href="/style_transfer">Style Transfer</a></li>
             </ul>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container">
-            <div class="hero-content">
-                <h1>Welcome to <span class="brand-name">IM Shutter</span></h1>
-                <p>Unleash your creativity with our powerful online image editing tools.</p>
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Welcome to <span class="brand-name">IM Shutter</span></h1>
+            <p>Unleash your creativity with our powerful online image editing tools.</p>
+            <div class="hero-buttons">
                 <button onclick="window.location.href='/app'" class="hero-btn">
                     <i class="fas fa-play"></i> Get Started
                 </button>
+                <button onclick="window.location.href='/style_transfer'" class="hero-btn">
+                    <i class="fas fa-paint-brush"></i> Style Transfer
+                </button>
             </div>
-            <div class="hero-image">
-                <img src="{{ url_for('static', filename='images/IMShutter.png') }}" alt="IM Shutter">
-            </div>
-            
         </div>
-    </section>
+        <div class="hero-image">
+            <img src="{{ url_for('static', filename='images/IMShutter.png') }}" alt="IM Shutter">
+        </div>
+    </div>
+</section>
+
 
     <!-- Features Section -->
     <section class="features-section" id="features">
         <div class="container">
             <h2>Why Choose IM Shutter?</h2>
+            <div class="feature-item"></div>
+                <i class="fas fa-paint-brush"></i>
+                <h3>Style Transfer</h3>
+                <p>Combine the content of one image with the style of another using our advanced neural style transfer technology.</p>
+            </div>
             <div class="features-grid">
                 <div class="feature-item">
                     <i class="fas fa-magic"></i>

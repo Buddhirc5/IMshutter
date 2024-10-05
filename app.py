@@ -24,7 +24,6 @@ for epoch in range(num_epochs):
     ├── image1.png
     ├── image2.png
 """
-
 from flask import Flask, render_template, request, send_file, jsonify
 from PIL import Image
 import cv2
@@ -32,7 +31,13 @@ import numpy as np
 from io import BytesIO
 import torch
 import torchvision
-from torchvision import transforms
+from torchvision import transforms, models
+import torch.nn as nn
+import torch.nn.functional as F
+import copy
+import time
+import os
+import re 
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -44,13 +49,152 @@ model.eval()  # Set the model to evaluation mode
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
-
 # Define the image preprocessing transformations
 preprocess = transforms.Compose([
     transforms.ToTensor(),  # Convert image to PyTorch tensor
     transforms.Normalize(mean=[0.485, 0.456, 0.406],  # Normalize using ImageNet mean and std
                          std=[0.229, 0.224, 0.225]),
 ])
+
+# Define the TransformerNet architecture
+class TransformerNet(nn.Module):
+    def __init__(self):
+        super(TransformerNet, self).__init__()
+        # Initial convolution layers
+        self.conv1 = ConvLayer(3, 32, kernel_size=9, stride=1)
+        self.in1 = nn.InstanceNorm2d(32, affine=True)
+        self.conv2 = ConvLayer(32, 64, kernel_size=3, stride=2)
+        self.in2 = nn.InstanceNorm2d(64, affine=True)
+        self.conv3 = ConvLayer(64, 128, kernel_size=3, stride=2)
+        self.in3 = nn.InstanceNorm2d(128, affine=True)
+
+        # Residual layers
+        self.res1 = ResidualBlock(128)
+        self.res2 = ResidualBlock(128)
+        self.res3 = ResidualBlock(128)
+        self.res4 = ResidualBlock(128)
+        self.res5 = ResidualBlock(128)
+
+        # Upsampling Layers
+        self.deconv1 = UpsampleConvLayer(128, 64, kernel_size=3, stride=1, upsample=2)
+        self.in4 = nn.InstanceNorm2d(64, affine=True)
+        self.deconv2 = UpsampleConvLayer(64, 32, kernel_size=3, stride=1, upsample=2)
+        self.in5 = nn.InstanceNorm2d(32, affine=True)
+        self.deconv3 = ConvLayer(32, 3, kernel_size=9, stride=1)
+
+        # Non-linearities
+        self.relu = nn.ReLU()
+
+    def forward(self, X):
+        y = self.relu(self.in1(self.conv1(X)))
+        y = self.relu(self.in2(self.conv2(y)))
+        y = self.relu(self.in3(self.conv3(y)))
+        y = self.res1(y)
+        y = self.res2(y)
+        y = self.res3(y)
+        y = self.res4(y)
+        y = self.res5(y)
+        y = self.relu(self.in4(self.deconv1(y)))
+        y = self.relu(self.in5(self.deconv2(y)))
+        y = self.deconv3(y)
+        return y
+
+class ConvLayer(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride):
+        super(ConvLayer, self).__init__()
+        reflection_padding = kernel_size // 2
+        self.reflection_pad = nn.ReflectionPad2d(reflection_padding)
+        self.conv2d = nn.Conv2d(
+            in_channels, out_channels, kernel_size, stride)
+
+    def forward(self, x):
+        out = self.reflection_pad(x)
+        out = self.conv2d(out)
+        return out
+
+class ResidualBlock(nn.Module):
+    """ResidualBlock as defined in Johnson et al."""
+    def __init__(self, channels):
+        super(ResidualBlock, self).__init__()
+        self.conv1 = ConvLayer(
+            channels, channels, kernel_size=3, stride=1)
+        self.in1 = nn.InstanceNorm2d(channels, affine=True)
+        self.conv2 = ConvLayer(
+            channels, channels, kernel_size=3, stride=1)
+        self.in2 = nn.InstanceNorm2d(channels, affine=True)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        residual = x
+        out = self.relu(self.in1(self.conv1(x)))
+        out = self.in2(self.conv2(out))
+        out = out + residual
+        return out
+
+class UpsampleConvLayer(nn.Module):
+    """Upsamples the input and then does a convolution."""
+    def __init__(self, in_channels, out_channels, kernel_size, stride, upsample=None):
+        super(UpsampleConvLayer, self).__init__()
+        self.upsample = upsample
+        reflection_padding = kernel_size // 2
+        self.reflection_pad = nn.ReflectionPad2d(reflection_padding)
+        self.conv2d = nn.Conv2d(
+            in_channels, out_channels, kernel_size, stride)
+
+    def forward(self, x):
+        if self.upsample:
+            x = nn.functional.interpolate(x, mode='nearest', scale_factor=self.upsample)
+        out = self.reflection_pad(x)
+        out = self.conv2d(out)
+        return out
+
+# List of available styles and their model files
+available_styles = {
+    'candy': 'candy.pth',
+    'mosaic': 'mosaic.pth',
+    'rain_princess': 'rain_princess.pth',
+    'udnie': 'udnie.pth'
+}
+
+# Load all style models
+style_models = {}
+for style_name, model_path in available_styles.items():
+    if os.path.exists(model_path):
+        # Create an instance of TransformerNet
+        style_model = TransformerNet().to(device)
+        # Load the state dict
+        state_dict = torch.load(model_path)
+        # Remove deprecated running_* keys in InstanceNorm from the checkpoint
+        for k in list(state_dict.keys()):
+            if re.search(r'in\d+\.running_(mean|var)$', k):
+                del state_dict[k]
+        style_model.load_state_dict(state_dict)
+        style_model.eval()
+        style_models[style_name] = style_model
+        print(f"Loaded style model: {style_name}")
+    else:
+        print(f"Model file {model_path} not found for style {style_name}")
+
+# Transformation for style transfer input images
+def style_transform(image_size):
+    transform = transforms.Compose([
+        transforms.Resize(image_size),
+        transforms.CenterCrop(image_size),
+        transforms.ToTensor(),
+        transforms.Lambda(lambda x: x.mul(255))  # Scale to [0, 255]
+    ])
+    return transform
+
+# Transformation to convert tensor to PIL image
+def tensor_to_image(tensor):
+    tensor = tensor.clone().detach().cpu()
+    tensor = tensor.squeeze(0)
+    tensor = torch.clamp(tensor, 0, 255)
+    tensor = tensor.permute(1, 2, 0).numpy().astype('uint8')
+    image = Image.fromarray(tensor)
+    return image
+
+
 
 # Global variables to store the processed image and history for undo/redo
 # Note: In a production environment, avoid using global variables for per-user data
@@ -548,6 +692,69 @@ def perform_segmentation():
         return send_file(BytesIO(buffer), mimetype='image/jpeg')
 
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Style Transfer Routes
+
+@app.route('/style_transfer')
+def style_transfer_page():
+    """
+    Render the style transfer page, passing available styles.
+    """
+    return render_template('style_transfer.html', styles=available_styles.keys())
+
+@app.route('/perform_style_transfer', methods=['POST'])
+def perform_style_transfer():
+    """
+    Perform style transfer on the uploaded image using the selected style model.
+    """
+    print("Received request for style transfer.")
+    # Check if the POST request has the files
+    if 'content_image' not in request.files:
+        print("Error: Content image not provided.")
+        return jsonify({'error': 'Please upload a content image.'}), 400
+
+    content_file = request.files['content_image']
+    style_name = request.form.get('style')
+
+    if content_file.filename == '':
+        print("Error: Content image not selected.")
+        return jsonify({'error': 'Please select a content image.'}), 400
+
+    if style_name not in style_models:
+        print(f"Error: Style '{style_name}' not recognized.")
+        return jsonify({'error': f"Style '{style_name}' not recognized."}), 400
+
+    try:
+        # Read and process the content image
+        content_img = Image.open(content_file).convert('RGB')
+        print("Content image loaded successfully.")
+
+        # Define the image size
+        image_size = 512  # You can adjust this value
+
+        # Apply transformations
+        transform = style_transform(image_size)
+        content_tensor = transform(content_img).unsqueeze(0).to(device)
+
+        # Get the style model
+        style_model = style_models[style_name]
+
+        # Perform style transfer
+        with torch.no_grad():
+            output_tensor = style_model(content_tensor).cpu()
+
+        # Convert tensor to image
+        output_img = tensor_to_image(output_tensor)
+        print("Style transfer completed.")
+
+        # Convert the output image to bytes and send it back
+        buf = BytesIO()
+        output_img.save(buf, format='JPEG')
+        buf.seek(0)
+        return send_file(buf, mimetype='image/jpeg')
+    except Exception as e:
+        print(f"Error during style transfer: {e}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

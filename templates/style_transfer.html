@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Style Transfer - IM Shutter</title>
+    <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo" onclick="window.location.href='/'">IM Shutter</div>
+        <ul class="nav-links">
+            <li><a href="/app">Editor</a></li>
+            <li><a href="/segmentation">Segmentation</a></li>
+            <li><a href="/style_transfer" class="active">Style Transfer</a></li>
+        </ul>
+    </nav>
+    <div class="style-transfer-container">
+        <h1>Style Transfer</h1>
+        <div class="description">
+            <p>
+                Upload a content image and select a style to create a stylized version.
+            </p>
+        </div>
+        <div class="file-upload-section">
+            <div>
+                <label for="content-file-input" class="custom-file-upload">
+                    <i class="fas fa-file-image"></i> Choose Content Image
+                </label>
+                <input type="file" id="content-file-input" accept="image/*" style="display:none;">
+            </div>
+            <div class="style-selection">
+                <h3>Select a Style:</h3>
+                <div class="style-options">
+                    {% for style in styles %}
+                    <div class="style-option">
+                        <input type="radio" name="style" id="style-{{ style }}" value="{{ style }}" {% if loop.first %}checked{% endif %}>
+                        <label for="style-{{ style }}">
+                            <div class="style-image-container">
+                                <img src="{{ url_for('static', filename='images/styles/' + style + '.jpg') }}" alt="{{ style }}" title="{{ style | capitalize }}">
+                                <div class="style-name">{{ style | capitalize }}</div>
+                            </div>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <button onclick="uploadAndStyleTransfer()" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Upload & Apply Style Transfer
+            </button>
+        </div>
+        <div class="image-display-container">
+            <div class="image-box">
+                <h3>Content Image</h3>
+                <img id="content-image" style="display:none;">
+            </div>
+            <div class="image-box">
+                <h3>Stylized Image</h3>
+                <img id="stylized-image" style="display:none;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Move the script to the end of the body -->
+    <script>
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'popup';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000); // Remove after 3 seconds
+        }
+
+        // Add event listener to update the UI when a style is selected
+        document.addEventListener('DOMContentLoaded', () => {
+            const styleOptions = document.querySelectorAll('.style-option input[type="radio"]');
+            styleOptions.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    updateSelectedStyle();
+                });
+            });
+            // Initialize the selected style on page load
+            updateSelectedStyle();
+        });
+
+        function updateSelectedStyle() {
+            const styleOptions = document.querySelectorAll('.style-option');
+            styleOptions.forEach(option => {
+                const input = option.querySelector('input[type="radio"]');
+                if (input.checked) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
+
+        function uploadAndStyleTransfer() {
+            console.log('uploadAndStyleTransfer function called.');
+            const contentFileInput = document.getElementById('content-file-input');
+            const styleRadios = document.getElementsByName('style');
+
+            if (!contentFileInput.files[0]) {
+                alert('Please select a content image to upload.');
+                return;
+            }
+            console.log('Content file selected.');
+
+            let selectedStyle;
+            for (const radio of styleRadios) {
+                if (radio.checked) {
+                    selectedStyle = radio.value;
+                    break;
+                }
+            }
+
+            if (!selectedStyle) {
+                alert('Please select a style.');
+                return;
+            }
+            console.log('Selected style:', selectedStyle);
+
+            const formData = new FormData();
+            formData.append('content_image', contentFileInput.files[0]);
+            formData.append('style', selectedStyle);
+            console.log('FormData prepared.');
+
+            fetch('/perform_style_transfer', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response received from server.');
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.error);
+                    });
+                }
+            })
+            .then(blob => {
+                console.log('Blob received.');
+                // Display the stylized image
+                const url = URL.createObjectURL(blob);
+                const imgElement = document.getElementById('stylized-image');
+                imgElement.src = url;
+                imgElement.style.display = 'block';
+
+                // Display the uploaded image
+                const contentImgElement = document.getElementById('content-image');
+                const contentUrl = URL.createObjectURL(contentFileInput.files[0]);
+                contentImgElement.src = contentUrl;
+                contentImgElement.style.display = 'block';
+
+                showNotification('Style transfer completed successfully!');
+            })
+            .catch(error => {
+                console.error('Error performing style transfer:', error);
+                alert('Error: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>

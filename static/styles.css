@@ -473,7 +473,11 @@ body {
     font-size: 1.2rem;
     margin-bottom: 30px;
 }
-
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
 .hero-btn {
     background-color: #ffdd57;
     color: #333;
@@ -713,3 +717,236 @@ footer {
         max-width: 100%;
     }
 }
+/* Style Transfer Page Specific Styles */
+
+.file-upload-section div {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.file-upload-section label {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.file-upload-section label:hover {
+    background-color: #0056b3;
+}
+
+.file-upload-section input[type="file"] {
+    display: none;
+}
+
+.btn.btn-primary {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn.btn-primary:hover {
+    background-color: #218838;
+}
+
+.image-display-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.image-box {
+    text-align: center;
+}
+
+.image-box h3 {
+    margin-bottom: 10px;
+}
+
+.image-box img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+/* Style Transfer Page Specific Styles */
+
+.style-transfer-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.file-upload-section {
+    margin-bottom: 30px;
+}
+
+.file-upload-section div {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.custom-file-upload {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.custom-file-upload:hover {
+    background-color: #0056b3;
+}
+
+.file-upload-section input[type="file"] {
+    display: none;
+}
+
+.btn.btn-primary {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn.btn-primary:hover {
+    background-color: #218838;
+}
+
+.image-display-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.image-box {
+    text-align: center;
+}
+
+.image-box h3 {
+    margin-bottom: 10px;
+}
+
+.image-box img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Style Selection */
+.style-selection {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.style-selection h3 {
+    margin-bottom: 10px;
+}
+
+.style-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
+.style-option {
+    position: relative;
+    display: inline-block;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.style-option input[type="radio"] {
+    display: none;
+}
+
+.style-option label {
+    cursor: pointer;
+    display: block;
+}
+
+.style-option label .style-image-container {
+    position: relative;
+    text-align: center;
+}
+
+.style-option label img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.style-option .style-name {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #333;
+}
+
+.style-option.selected {
+    background-color: #e6f0ff; /* Light blue background when selected */
+    border: 3px solid #007bff;
+}
+
+.style-option.selected .style-name {
+    color: #007bff;
+}
+
+.style-option:hover {
+    background-color: #f0f0f0;
+}
+
+.style-option .style-image-container::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 24px;
+    color: #007bff;
+    display: none;
+}
+
+.style-option.selected .style-image-container::after {
+    content: '\f00c'; /* Font Awesome check icon */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    display: block;
+}
+
