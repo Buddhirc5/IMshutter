@@ -1,32 +1,28 @@
-name: Node.js CI
+name: Python Application
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x]
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.9  # You can adjust the version if needed
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
 
-      - name: Set up Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-version }}
+    - name: Install dependencies
+      run: |
+        python -m venv .venv
+        .venv/bin/pip install -r requirements.txt
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
+    - name: Run the application or tests
+      run: |
+        .venv/bin/python app.py  # Replace with actual test commands
