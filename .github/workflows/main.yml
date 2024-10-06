@@ -13,10 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.9  # You can adjust the version if needed
+    - name: Set up Python 3.9  # Adjust Python version as needed
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
+
+    - name: Change to the correct directory
+      run: cd IMshutter  # Ensure you're in the right folder where app.py and requirements.txt are located
 
     - name: Install dependencies
       run: |
@@ -25,4 +28,4 @@ jobs:
 
     - name: Run the application or tests
       run: |
-        .venv/bin/python app.py  # Replace with actual test commands
+        .venv/bin/python app.py  # Replace with actual test or run command
