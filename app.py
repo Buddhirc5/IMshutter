@@ -42,7 +42,7 @@ import re
 # Initialize Flask app
 app = Flask(__name__)
 
-# Load the  DeepLabV3 model for semantic segmentation again trained with CAR images from COCO dataset
+# Load the  model for semantic segmentation again trained with CAR images from COCO dataset
 
 model = torchvision.models.segmentation.deeplabv3_resnet101(pretrained=True)
 model.eval()  # Set the model to evaluation mode
